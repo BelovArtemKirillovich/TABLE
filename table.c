@@ -1,17 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "table.h"
+#include "return_code.h"
 
+/**
+ * @return 0 - succes(SUCCESS), -2 - invalid first argument(INVALID_ARGUMENT(1)) -3 - invalid second argument
+ *          -1 - not memory
+ */
+int create(int msize, Table** __out){
+    if (msize < 0) return INVALID_ARGUMENT(1);
+    if (__out == NULL) return INVALID_ARGUMENT(2);
 
-int create(int msize, Table* out){
-    if(msize < 0) return NULL;
-    Table *table = malloc(sizeof(Table));
-    if(table == NULL) return NULL;
+    Table* table = malloc(sizeof(Table));
+    if(table == NULL) return NOT_ENOUTH_MEMORY;
     table->ks = calloc(msize, sizeof(KeySpace));
-    if(table->ks == NULL) return NULL;
+    if(table->ks == NULL) return NOT_ENOUTH_MEMORY;
     table->msize = msize;
     table->csize = 0;
-    return table;
+
+    *__out = table;
+    return SUCCESS;
 }
 
 int hash(int key, int msize) {
@@ -115,7 +123,6 @@ int export(Table* table, const char* filename) {
 int individualDelete(Table* table);
 
 void freeTable(Table* table) {
-    if(table->csize == 0  || table->ks == NULL || table->msize == 0) return;
     
 }
 

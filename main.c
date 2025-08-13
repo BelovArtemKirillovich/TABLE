@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "table.h"
+#include "return_code.h"
 
 void menu() {
     printf("********MENU*********\n");
@@ -20,7 +21,7 @@ void menu() {
 int main() {
     int command, key, release, info, msize, tmp;
     KeySpace* ks;
-    Table* table = create(0);
+    Table* table = NULL;
     do {
         menu();
         if(checkCom(&command) == -1) {
@@ -36,15 +37,15 @@ int main() {
                 printf("Programme closed.\n");
                 return 0;
             case 1:
-                if(table->ks != NULL){
-                    freeTable(table);
-                }
+                freeTable(table);
                 printf("msize:\n");
                 checkInt(&msize);
-                table = create(msize);
-                if(table == NULL) {
-                    printf("ERROR\nError of memory\nTable didn`t create\n");
-                }       
+                int code = create(msize, &table);
+                if (code == INVALID_ARGUMENT(1)) {
+
+                } else if (code == NOT_ENOUTH_MEMORY) {
+                    
+                }     
                 break;
             case 2:
                 printf("key: \n");

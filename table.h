@@ -1,6 +1,8 @@
 #ifndef TABLE_H
 #define TABLE_H
 
+#include "stdint.h"
+
 typedef struct Node {
     int release;
     int info;
@@ -19,7 +21,7 @@ typedef struct Table {
     int csize;
 } Table;
 
-Table* create(int msize);
+int create(int msize, Table** __out);
 KeySpace* find(Table* table, int key);
 int findAllVersions(Table* table, int key);
 int insert(Table* table, int key, int info);
