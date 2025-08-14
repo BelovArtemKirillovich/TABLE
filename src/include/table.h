@@ -23,11 +23,14 @@ typedef struct Table {
 
 int create(int msize, Table** __out);
 KeySpace* find(Table* table, int key);
-int findAllVersions(Table* table, int key);
+Node* findRelease(Table* table, int key, int release);
+int findAllVersions(Table* table, Node* __out, int key);
 int insert(Table* table, int key, int info);
-int delete(Table* table, int key, int release);
+int deleteByRelease(Table* table, int key, int release);
+int deleteHeadRelease(Table* table, int key);
+int deleteKeySpace(Table* table, int key);
 int seeTable(Table* table);
 int individualDelete(Table* table);
-void freeTable(Table* table);
+int freeTable(Table* table);
 
 #endif

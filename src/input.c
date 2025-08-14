@@ -16,9 +16,9 @@ int inputInt(int *x, int min, int max) {
 }
 
 int checkCom(int *x) {
-    return inputInt(x, 0, 9);
+    return inputInt(x, 0, 8);
 }
 
 int checkInt(int *x) {
-    return inputInt(x, INT_MIN, INT_MAX);
+    return inputInt(x, 0, INT_MAX);
 }
