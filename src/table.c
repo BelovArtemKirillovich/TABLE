@@ -7,8 +7,7 @@
  * @return 0 - succes(SUCCESS), -2 - invalid first argument(INVALID_ARGUMENT(1)) -3 - invalid second argument
  *          -1 - not memory
  */
-int create(int msize, Table** __out){
-    if (msize < 0) return INVALID_ARGUMENT;
+int create(IndexType msize, Table** __out){
     if (__out == NULL) return INVALID_ARGUMENT;
 
     Table* table = malloc(sizeof(Table));
@@ -22,28 +21,24 @@ int create(int msize, Table** __out){
     return SUCCESS;
 }
 
-int hash(int key, int msize) {
+int hash(KeyType key, int msize) {
     return key % msize;
 }
 
-Node* findRelease(Table* table, int key, int release) {
-    if (table == NULL || table->ks == NULL) return TABLE_IS_EMPTY;
-    int index = hash(key, table->msize);
-    KeySpace* ptr = table->ks[index];
-    while (ptr != NULL) {
-        if(ptr->key == key) break;
-        ptr = ptr->next;
-    }
-    if (ptr == NULL) return ELEMENT_NOT_FOUND;
+Node* findRelease(Table* table, KeyType key, RelType release) {
+    if (table == NULL || table->ks == NULL) return NULL;
+    KeySpace* ptr = find(table, key);
+    if (ptr == NULL) return NULL;
+
     Node* ptr_node = ptr->node;
     while (ptr_node != NULL) {
         if(ptr_node->release == release) return ptr_node;
         ptr_node = ptr_node->next;
     }
-    if (ptr_node == NULL) return ELEMENT_NOT_FOUND;
+    return NULL;
 }
 
-KeySpace* find(Table* table, int key) {
+KeySpace* find(Table* table, KeyType key) {
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
     while(ptr->next != NULL) {
@@ -55,23 +50,26 @@ KeySpace* find(Table* table, int key) {
     return NULL;
 }
 
-int findAllVersions(Table* table, Node* __out, int key) {
+int findAllVersions(Table* table, InfoType** __out_array, KeyType key) {
+    if (table == NULL) return INVALID_ARGUMENT;
+    if (__out_array == NULL) return INVALID_ARGUMENT;
     KeySpace* ptr = find(table, key);
     if(ptr == NULL) return ELEMENT_NOT_FOUND;
-    __out = malloc(ptr->node->release * sizeof(Node));
-    if(__out == NULL) return ERROR_OF_MEMORY;
-    int n = ptr->node->release;
-    for(int index = 0; index != n; index++) {
-        __out[index].info = ptr->node->info;
-        __out[index].release = ptr->node->release;
-        __out[index].next = NULL;
-        ptr->node = ptr->node->next;
+    Node* head = ptr->node;
+    if (head == NULL) return ELEMENT_NOT_FOUND;
+    InfoType* array = calloc(head->release + 1U, sizeof(InfoType));
+    if (array == NULL) return ERROR_OF_MEMORY;
+
+    while (head != NULL) {
+        array[head->release] = head->info;
+        head = head->next;
     }
+    *__out_array = array;
     return SUCCESS;
 }
 
 
-int insert(Table* table, int key, int info) {
+int insert(Table* table, KeyType key, InfoType info) {
     if(table->msize == 0 || table == NULL) return TABLE_IS_EMPTY;
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
@@ -92,6 +90,7 @@ int insert(Table* table, int key, int info) {
     KeySpace* new = malloc(sizeof(KeySpace));
     if(new == NULL) return ERROR_OF_MEMORY;
     new->key = key;
+    new->node = NULL; /* TODO: somethindg*/
     new->node->info = info;
     new->node->release = 1;
     if(prev == NULL) {
@@ -108,7 +107,7 @@ int insert(Table* table, int key, int info) {
 }
 
 
-int deleteByRelease(Table* table, int key, int release) {
+int deleteByRelease(Table* table, KeyType key, RelType release) {
     if (table == NULL || table->ks == NULL) return TABLE_IS_EMPTY;
     int index = hash(key, table->msize);
     KeySpace* prev = NULL;
@@ -145,7 +144,7 @@ int deleteByRelease(Table* table, int key, int release) {
 }
 
 
-int deleteHeadRelease(Table* table, int key) {
+int deleteHeadRelease(Table* table, KeyType key) {
     if (table == NULL || table->ks == NULL) return TABLE_IS_EMPTY;
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
@@ -171,7 +170,7 @@ int deleteHeadRelease(Table* table, int key) {
     return SUCCESS;
 }
 
-int deleteKeySpace(Table* table, int key) {
+int deleteKeySpace(Table* table, KeyType key) {
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
     KeySpace* prev = NULL;
@@ -202,13 +201,13 @@ int seeTable(Table* table) {
         return TABLE_IS_EMPTY;
     }
     printf("********TABLE**********\n");
-    for(int index = 0; index != table->msize; index++) {
-        printf("Keyspace %d:\n", index);
+    for(IndexType index = 0; index != table->msize; index++) {
+        printf("Keyspace %lu:\n", index);
         KeySpace* ptr = table->ks[index];
         while(ptr != NULL) {
             printf("    Key->%d\n", ptr->key);
             while(ptr->node != NULL) {
-                printf("        Release->%d   Info->%d\n", ptr->node->release, ptr->node->info);
+                printf("        Release->%lu   Info->%u\n", ptr->node->release, ptr->node->info);
                 ptr->node = ptr->node->next;
             }
             ptr = ptr->next;
@@ -218,16 +217,20 @@ int seeTable(Table* table) {
 }
 
 int import(Table* table, const char* filename) {
-
+    if (table == NULL) return INVALID_ARGUMENT;
+    if (filename == NULL) return INVALID_ARGUMENT;
+    return SUCCESS;
 }
 
 int export(Table* table, const char* filename) {
-
+    if (table == NULL) return INVALID_ARGUMENT;
+    if (filename == NULL) return INVALID_ARGUMENT;
+    return SUCCESS;
 }
 
 int individualDelete(Table* table) {
     if (table == NULL || table->csize == 0 || table->msize == 0 || table->ks == NULL) return TABLE_IS_EMPTY;
-    for (int index = 0; index < table->msize; index++) {
+    for (IndexType index = 0; index < table->msize; index++) {
         KeySpace *ptr = table->ks[index];
         while (ptr != NULL) {
             if(ptr->node == NULL || ptr->node->next == NULL) continue;
@@ -246,7 +249,7 @@ int individualDelete(Table* table) {
 
 int freeTable(Table *table) {
     if (table == NULL || table->csize == 0 || table->msize == 0) return TABLE_IS_EMPTY;
-    for (int index = 0; index < table->msize; index++) {
+    for (IndexType index = 0; index < table->msize; index++) {
         KeySpace *ptr = table->ks[index];
         while (ptr != NULL) {
             KeySpace* next = ptr->next;

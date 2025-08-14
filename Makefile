@@ -12,7 +12,7 @@ BINDIR = bin
 SRCS = $(wildcard $(SRCDIR)/*.c)
 OBJS = $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
-all: $(BINDIR)/$(TARGET) 
+all: run
 
 $(BINDIR)/$(TARGET): $(OBJS) | $(BINDIR)
 	$(CC) $(LDFLAGS) $^ -o $@
@@ -28,6 +28,9 @@ $(BINDIR):
 
 valgrind: $(BINDIR)/$(TARGET)
 	valgrind --leak-check=full $^
+
+run: $(BINDIR)/$(TARGET)
+	./$^
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)

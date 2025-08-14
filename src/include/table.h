@@ -1,34 +1,40 @@
 #ifndef TABLE_H
 #define TABLE_H
 
-#include "stdint.h"
+#include <stdint.h>
+#include <malloc.h>
+
+typedef uint32_t KeyType;
+typedef uint32_t InfoType;
+typedef size_t IndexType;
+typedef size_t RelType;
 
 typedef struct Node {
-    int release;
-    int info;
+    RelType release;
+    InfoType info;
     struct Node *next;
- }Node;
+ } Node;
 
 typedef struct KeySpace {
-    int key;
+    KeyType key;
     Node *node;
     struct KeySpace *next;
 } KeySpace;
 
 typedef struct Table {
     KeySpace **ks;
-    int msize;
-    int csize;
+    IndexType msize;
+    IndexType csize;
 } Table;
 
-int create(int msize, Table** __out);
-KeySpace* find(Table* table, int key);
-Node* findRelease(Table* table, int key, int release);
-int findAllVersions(Table* table, Node* __out, int key);
-int insert(Table* table, int key, int info);
-int deleteByRelease(Table* table, int key, int release);
-int deleteHeadRelease(Table* table, int key);
-int deleteKeySpace(Table* table, int key);
+int create(IndexType msize, Table** __out);
+KeySpace* find(Table* table, KeyType key);
+Node* findRelease(Table* table, KeyType key, RelType release);
+int findAllVersions(Table* table, InfoType** __out_array, KeyType key);
+int insert(Table* table, KeyType key, InfoType info);
+int deleteByRelease(Table* table, KeyType key, RelType release);
+int deleteHeadRelease(Table* table, KeyType key);
+int deleteKeySpace(Table* table, KeyType key);
 int seeTable(Table* table);
 int individualDelete(Table* table);
 int freeTable(Table* table);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "include/input.h"
 #include "include/table.h"
 #include "include/return_code.h"
 
@@ -32,7 +33,6 @@ void menuFind() {
 
 int main() {
     int command;
-    KeySpace* ks;
     Table* table = NULL;
     do {
         int key, release, info, msize, tmp;
@@ -119,7 +119,7 @@ int main() {
                     printf("Release:\n");
                     checkInt(&release);
                     Node* node = findRelease(table, key, release);
-                    if(node == ELEMENT_NOT_FOUND) {
+                    if(node == NULL) {
                         printf("ERROR\nElement not found\n");
                     }
                     else {
@@ -127,14 +127,14 @@ int main() {
                     }
                 }
                 else if(command == 2) {
-                    Node** __out;
-                    tmp = findAllVersions(table, __out, key);
+                    InfoType* array = NULL;
+                    tmp = findAllVersions(table, &array, key);
                     if(tmp == ELEMENT_NOT_FOUND) {
                         printf("ERROR\nElement not found\n");
                     }
-                    else {
+                    else if (tmp == SUCCESS) {
                         //печать элементов
-                        free(__out);
+                        free(array);
                     }
                 }
                 seeTable(table);

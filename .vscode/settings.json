@@ -4,6 +4,7 @@
         "stdint.h": "c",
         "inttypes.h": "c",
         "compare": "c",
-        "return_code.h": "c"
+        "return_code.h": "c",
+        "limits.h": "c"
     }
 }
