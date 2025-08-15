@@ -2,29 +2,40 @@
 #include <limits.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "return_code.h"
 
 int inputUInt64(uint64_t *out, uint64_t min, uint64_t max) {
-    if (out == NULL) return -2;
+    if (out == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (min > max) {
+        uint64_t tmp = min;
+        min = max;
+        max = tmp;
+    }
     int count = scanf("%lu", out);
     while (count != 1 || *out < min || *out > max) {
-        printf("Error. Please correct input:\n");
+        printf("Error. Please correct number from %lu to %lu:\n", min, max);
         scanf("%*[^\n]");
         count = scanf("%lu", out);
-        if (count == EOF) return -1;
+        if (count == EOF) return ELEMENT_NOT_FOUND;
     }
-    return 0;
+    return SUCCESS;
 }
 
 int inputInt64(int64_t *out, int64_t min, int64_t max) {
-    if (out == NULL) return -2;
+    if (out == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (min > max) {
+        uint64_t tmp = min;
+        min = max;
+        max = tmp;
+    }
     int count = scanf("%ld", out);
     while (count != 1 || *out < min || *out > max) {
-        printf("Error. Please correct input:\n");
+        printf("Error. Please correct number from %ld to %ld:\n", min, max);
         scanf("%*[^\n]");
         count = scanf("%ld", out);
-        if (count == EOF) return -1;
+        if (count == EOF) return ELEMENT_NOT_FOUND;
     }
-    return 0;
+    return SUCCESS;
 }
 
 int inputInt32(int32_t *out, int32_t min, int32_t max) {

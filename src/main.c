@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "include/input.h"
 #include "include/table.h"
+#include "include/table_io.h"
 #include "include/return_code.h"
 
 void menu() {
@@ -14,6 +15,7 @@ void menu() {
     printf("6. Import table\n");
     printf("7. Export table\n");
     printf("8. Reorganizing table\n");
+    printf("9. Clear table\n");
 }
 
 void menuDelete() {
@@ -29,35 +31,43 @@ void menuFind() {
     printf("2. Find all release by key\n");
 }
 
-
+int close(Table *table, int code) {
+    if (table != NULL) freeTable(&table);
+    printf("Programme closed.\n");
+    return code;
+}
 
 int main() {
     int command;
     Table* table = NULL;
     do {
-        int tmp, key, release, info, msize;
+        int tmp, key, release, info;
         menu();
         if(checkCom(&command) == -1) {
-            freeTable(table);
-            printf("Programme closed.\n");
-            return 0;
+            return close(table, SUCCESS);
         }
         switch(command)  {
             case 0:
-                freeTable(table);
-                printf("Programme closed.\n");
-                return 0;
+                return close(table, SUCCESS);
             case 1:
                 freeTable(table);
-                table = NULL;
-                printf("msize:\n");
-                checkInt(&msize);
-                int code = create(msize, &table);
-                if (code == INVALID_ARGUMENT) {
-
-                } else if (code == ERROR_OF_MEMORY) {
-                    printf("ERROR\nError of memory\n");
-                }     
+                IndexType msize;
+                int code;
+                do {
+                    code = inputUInt32(&msize, 1U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                code = createTable(msize, &table);
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable point
+                if (code == ERROR_OF_MEMORY) {
+                    fprintf(stderr, "Error: Not fount memory to initialize table.");
+                    return close(table, code);
+                }  
                 break;
             case 2:
                 printf("key: \n");
@@ -71,7 +81,7 @@ int main() {
                 else if(tmp == 2) {
                     printf("ERROR\nError of memory\nNew element didn`t create\n");
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 3:
                 menuDelete();
@@ -107,7 +117,7 @@ int main() {
                         printf("ERROR\nElement not found\n");
                     }
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 4:
                 menuFind();
@@ -136,23 +146,26 @@ int main() {
                         free(array);
                     }
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 5:
-                seeTable(table);   
+                printTable(table);   
                 break;
             case 6:
-                import(table, "tests/table.bin");      
+                importTable(table, "tests/table.bin");      
                 break;
             case 7:
-                export(table, "tests/table.bin");
+                exportTable(table, "tests/table.bin");
                 break;
             case 8:
                 tmp = individualDelete(table);
                 if(tmp == TABLE_IS_EMPTY) {
                     printf("ERROR\nTable is empty\n");
                 }
-                seeTable(table);
+                printTable(table);
+                break;
+            case 9:
+                clearTable(table);
                 break;
         }
     }while(command != 0);
