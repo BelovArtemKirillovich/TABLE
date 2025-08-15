@@ -35,7 +35,7 @@ int main() {
     int command;
     Table* table = NULL;
     do {
-        int key, release, info, msize, tmp;
+        int tmp, key, release, info, msize;
         menu();
         if(checkCom(&command) == -1) {
             freeTable(table);

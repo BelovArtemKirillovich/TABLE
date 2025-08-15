@@ -3,10 +3,7 @@
 #include "include/table.h"
 #include "include/return_code.h"
 
-/**
- * @return 0 - succes(SUCCESS), -2 - invalid first argument(INVALID_ARGUMENT(1)) -3 - invalid second argument
- *          -1 - not memory
- */
+
 int create(IndexType msize, Table** __out){
     if (__out == NULL) return INVALID_ARGUMENT;
 
@@ -89,15 +86,15 @@ int insert(Table* table, KeyType key, InfoType info) {
     }
     KeySpace* new = malloc(sizeof(KeySpace));
     if(new == NULL) return ERROR_OF_MEMORY;
+    new->node = malloc(sizeof(Node));
+    if(new->node == NULL) return ERROR_OF_MEMORY;
     new->key = key;
-    new->node = NULL; /* TODO: somethindg*/
     new->node->info = info;
     new->node->release = 1;
     if(prev == NULL) {
         ++table->csize;
         new->next = NULL;
         table->ks[index] = new;
-
     }
     else {
         new->next = table->ks[index];
