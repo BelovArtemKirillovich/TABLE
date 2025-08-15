@@ -6,5 +6,6 @@
 #define INVALID_ARGUMENT (2)
 #define ELEMENT_NOT_FOUND (3)
 #define TABLE_IS_EMPTY (4)
+#define FILE_CAN_NOT_OPEN (5)
 
 #endif // RETURN_CODE_H

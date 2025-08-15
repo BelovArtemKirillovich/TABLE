@@ -39,18 +39,17 @@ int main() {
         menu();
         if(checkCom(&command) == -1) {
             freeTable(table);
-            free(table);
             printf("Programme closed.\n");
             return 0;
         }
         switch(command)  {
             case 0:
                 freeTable(table);
-                free(table);
                 printf("Programme closed.\n");
                 return 0;
             case 1:
                 freeTable(table);
+                table = NULL;
                 printf("msize:\n");
                 checkInt(&msize);
                 int code = create(msize, &table);
@@ -143,10 +142,10 @@ int main() {
                 seeTable(table);   
                 break;
             case 6:
-                            
+                import(table, "tests/table.bin");      
                 break;
             case 7:
-                            
+                export(table, "tests/table.bin");
                 break;
             case 8:
                 tmp = individualDelete(table);
