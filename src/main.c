@@ -38,22 +38,24 @@ int close(Table *table, int code) {
 }
 
 int main() {
-    int command;
+    uint8_t command;
     Table* table = NULL;
     do {
         int tmp, key, release, info;
         menu();
-        if(checkCom(&command) == -1) {
+        if(inputUInt8(&command, 0, 8) == -1) {
             return close(table, SUCCESS);
         }
         switch(command)  {
-            case 0:
+            case 0: {
                 return close(table, SUCCESS);
-            case 1:
-                freeTable(table);
+            }
+            case 1: {
+                freeTable(&table);
                 IndexType msize;
                 int code;
                 do {
+                    printf("Enter max-size of table: \n");
                     code = inputUInt32(&msize, 1U, UINT32_MAX);
                     // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
                     if (code == ELEMENT_NOT_FOUND) {
@@ -65,11 +67,12 @@ int main() {
                 // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
                 // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable point
                 if (code == ERROR_OF_MEMORY) {
-                    fprintf(stderr, "Error: Not fount memory to initialize table.");
+                    fprintf(stderr, "Error: Not found memory to initialize table.");
                     return close(table, code);
                 }  
                 break;
-            case 2:
+            }
+            case 2: {
                 printf("key: \n");
                 checkInt(&key);
                 printf("Info: \n");
@@ -83,9 +86,10 @@ int main() {
                 }
                 printTable(table);
                 break;
-            case 3:
+            }
+            case 3: {
                 menuDelete();
-                inputInt(&command, 1, 3);
+                inputUInt8(&command, 1, 3);
                 printf("Key\n");
                 checkInt(&key);
                 if(command == 1) {
@@ -119,9 +123,10 @@ int main() {
                 }
                 printTable(table);
                 break;
-            case 4:
+            }
+            case 4: {
                 menuFind();
-                inputInt(&command, 1, 2);
+                inputUInt8(&command, 1, 2);
                 printf("Key:\n");
                 checkInt(&key);
                 if(command == 1) {
@@ -148,25 +153,41 @@ int main() {
                 }
                 printTable(table);
                 break;
-            case 5:
+            }
+            case 5: {
                 printTable(table);   
                 break;
-            case 6:
-                importTable(table, "tests/table.bin");      
+            }
+            case 6: {
+                char* filename = "tests/table.bin";
+                int code = importTable(table, filename);     
                 break;
-            case 7:
-                exportTable(table, "tests/table.bin");
+            }
+            case 7: {
+                char* filename = "tests/table.bin";
+                int code = exportTable(table, filename);
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and in other calls
+                if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+                    fprintf(stderr, "Error: Table is not initialized, create it, and try again.\n");
+                } else if (code == FILE_CAN_NOT_OPEN) {
+                    fprintf(stderr, "Error: Can't open file '%s' to export table\n", filename);
+                } else if (code == ERROR_IN_FILE) {
+                    perror("Error: on save to file on exporting table\n");
+                }
                 break;
-            case 8:
+            }
+            case 8: {
                 tmp = individualDelete(table);
                 if(tmp == TABLE_IS_EMPTY) {
                     printf("ERROR\nTable is empty\n");
                 }
                 printTable(table);
                 break;
-            case 9:
+            }
+            case 9: {
                 clearTable(table);
                 break;
+            }
         }
     }while(command != 0);
     return 0;

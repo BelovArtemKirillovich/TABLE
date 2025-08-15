@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdint.h>
-#include <stdbool.h>
+#include <malloc.h>
 #include "return_code.h"
 
 int inputUInt64(uint64_t *out, uint64_t min, uint64_t max) {
@@ -77,6 +77,73 @@ int inputUInt8(uint8_t *out, uint8_t min, uint8_t max) {
     uint64_t number = 0;
     int code = inputUInt64(&number, min, max);
     if (code == 0) *out = (uint8_t) number;
+    return code;
+}
+
+int freadline(FILE* stream, char** out) {
+    if (stream == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (out == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
+    
+    size_t capacity = 16; 
+    size_t length = 0;
+    char* buffer = calloc(capacity, sizeof(char));
+    if (buffer == NULL) {
+        return ERROR_OF_MEMORY;
+    }
+
+    int c;
+    while ((c = fgetc(stream)) != EOF && c != '\n' && !ferror(stream)) {
+        if (length + 1 >= capacity) {
+            capacity *= 2;
+            char* temp = realloc(buffer, capacity * sizeof(char));
+            if (temp == NULL) {
+                free(buffer);
+                return ERROR_OF_MEMORY;
+            }
+            buffer = temp;
+        }
+        
+        buffer[length++] = (char)c;
+    }
+    if (ferror(stream)) {
+        free(buffer);
+        return ERROR_IN_FILE;
+    }
+    if (length == 0 && c == EOF) {
+        char* temp = realloc(buffer, 1 * sizeof(char));
+        if (temp == NULL) {
+            free(buffer);
+            return ERROR_OF_MEMORY;
+        }
+        buffer = temp;
+        buffer[0] = '\0';
+        *out = buffer;
+        return SUCCESS;
+    }
+
+    if (length == capacity) {
+        capacity *= 2;
+        char* temp = realloc(buffer, (capacity + 1) * sizeof(char));
+        if (temp == NULL) {
+            free(buffer);
+            return -3;
+        }
+        buffer = temp;
+        buffer[length] = '\0';
+    }
+
+    *out = buffer;
+    return SUCCESS;
+}
+
+int readline(char** out) {
+    int code = freadline(stdin, out);
+    if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+        return ELEMENT_NOT_FOUND;
+    }
+    if (code == INVALID_ARGUMENT_BY_INDEX(1)) {
+        return INVALID_ARGUMENT_BY_INDEX(0);
+    }
     return code;
 }
 
