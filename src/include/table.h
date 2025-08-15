@@ -6,8 +6,8 @@
 
 typedef uint32_t KeyType;
 typedef uint32_t InfoType;
-typedef size_t IndexType;
-typedef size_t RelType;
+typedef uint32_t IndexType;
+typedef uint32_t RelType;
 
 typedef struct Node {
     RelType release;
@@ -27,7 +27,7 @@ typedef struct Table {
     IndexType csize;
 } Table;
 
-int create(IndexType msize, Table** __out);
+int createTable(IndexType msize, Table** __out);
 KeySpace* find(Table* table, KeyType key);
 Node* findRelease(Table* table, KeyType key, RelType release);
 int findAllVersions(Table* table, InfoType** __out_array, KeyType key);
@@ -36,6 +36,7 @@ int deleteByRelease(Table* table, KeyType key, RelType release);
 int deleteHeadRelease(Table* table, KeyType key);
 int deleteKeySpace(Table* table, KeyType key);
 int individualDelete(Table* table);
-int freeTable(Table* table);
+int clearTable(Table *table);
+int freeTable(Table** table);
 
 #endif

@@ -4,12 +4,12 @@
 #include "include/return_code.h"
 
 
-int create(IndexType msize, Table** __out){
-    if (__out == NULL) return INVALID_ARGUMENT;
+int createTable(IndexType msize, Table** __out) {
+    if (msize == 0) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (__out == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
 
     Table* table = calloc(1, sizeof(Table));
     if(table == NULL) return ERROR_OF_MEMORY;
-    /* TODO: check on msize equals 0 */
     table->ks = calloc(msize, sizeof(KeySpace));
     if(table->ks == NULL) return ERROR_OF_MEMORY;
     table->msize = msize;
@@ -74,7 +74,7 @@ int insert(Table* table, KeyType key, InfoType info) {
     KeySpace* prev = NULL;
     while(ptr != NULL) {
         if(ptr->key == key) {
-            Node* newnode = malloc(sizeof(Node));
+            Node* newnode = calloc(1, sizeof(Node));
             if(newnode == NULL) return ERROR_OF_MEMORY;
             newnode->release = ptr->node->release + 1;
             newnode->info = info;
@@ -85,9 +85,9 @@ int insert(Table* table, KeyType key, InfoType info) {
         prev = ptr;
         ptr = ptr->next;
     }
-    KeySpace* new = malloc(sizeof(KeySpace));
+    KeySpace* new = calloc(1, sizeof(KeySpace));
     if(new == NULL) return ERROR_OF_MEMORY;
-    new->node = malloc(sizeof(Node));
+    new->node = calloc(1, sizeof(Node));
     if(new->node == NULL) {
         free(new);
         return ERROR_OF_MEMORY;
@@ -214,9 +214,8 @@ int individualDelete(Table* table) {
     return SUCCESS;
 }
 
-
-int freeTable(Table *table) {
-    if (table == NULL) return TABLE_IS_EMPTY;
+int clearTable(Table *table) {
+    if (table == NULL) return INVALID_ARGUMENT;
     if (table->ks != NULL) {
         for (IndexType index = 0; index < table->msize; index++) {
             KeySpace *ptr = table->ks[index];
@@ -237,7 +236,14 @@ int freeTable(Table *table) {
     table->ks = NULL;
     table->csize = 0;
     table->msize = 0;
-    free(table);
+    return SUCCESS;
+}
+
+int freeTable(Table** table) {
+    if (table == NULL) return INVALID_ARGUMENT;
+    clearTable(*table);
+    free(*table);
+    *table = NULL;
     return SUCCESS;
 }
 

@@ -15,6 +15,7 @@ void menu() {
     printf("6. Import table\n");
     printf("7. Export table\n");
     printf("8. Reorganizing table\n");
+    printf("9. Clear table\n");
 }
 
 void menuDelete() {
@@ -30,35 +31,43 @@ void menuFind() {
     printf("2. Find all release by key\n");
 }
 
-
+int close(Table *table, int code) {
+    if (table != NULL) freeTable(&table);
+    printf("Programme closed.\n");
+    return code;
+}
 
 int main() {
     int command;
     Table* table = NULL;
     do {
-        int tmp, key, release, info, msize;
+        int tmp, key, release, info;
         menu();
         if(checkCom(&command) == -1) {
-            freeTable(table);
-            printf("Programme closed.\n");
-            return 0;
+            return close(table, SUCCESS);
         }
         switch(command)  {
             case 0:
-                freeTable(table);
-                printf("Programme closed.\n");
-                return 0;
+                return close(table, SUCCESS);
             case 1:
                 freeTable(table);
-                table = NULL;
-                printf("msize:\n");
-                checkInt(&msize);
-                int code = create(msize, &table);
-                if (code == INVALID_ARGUMENT) {
-
-                } else if (code == ERROR_OF_MEMORY) {
-                    printf("ERROR\nError of memory\n");
-                }     
+                IndexType msize;
+                int code;
+                do {
+                    code = inputUInt32(&msize, 1U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                code = createTable(msize, &table);
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable point
+                if (code == ERROR_OF_MEMORY) {
+                    fprintf(stderr, "Error: Not fount memory to initialize table.");
+                    return close(table, code);
+                }  
                 break;
             case 2:
                 printf("key: \n");
@@ -154,6 +163,9 @@ int main() {
                     printf("ERROR\nTable is empty\n");
                 }
                 printTable(table);
+                break;
+            case 9:
+                clearTable(table);
                 break;
         }
     }while(command != 0);
