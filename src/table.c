@@ -96,13 +96,13 @@ int insert(Table* table, KeyType key, InfoType info) {
     new->node->info = info;
     new->node->release = 1;
     if(prev == NULL) {
-        ++table->csize;
         new->next = NULL;
     }
     else {
         new->next = table->ks[index];
     }
     table->ks[index] = new;
+    ++table->csize;
     return SUCCESS;
 }
 
@@ -140,6 +140,7 @@ int deleteByRelease(Table* table, KeyType key, RelType release) {
         }
         free(ptr);
     }
+    table->csize--;
     return SUCCESS;
 }
 
@@ -167,6 +168,7 @@ int deleteHeadRelease(Table* table, KeyType key) {
         free(ptr);
         prev->next = next;
     }
+    table->csize--;
     return SUCCESS;
 }
 
@@ -192,6 +194,7 @@ int deleteKeySpace(Table* table, KeyType key) {
         prev->next = ptr->next;
     }
     free(ptr);
+    table->csize--;
     return SUCCESS;
 }
 
@@ -301,6 +304,7 @@ int freeTable(Table *table) {
                     Node *next_node = ptrNode->next;
                     free(ptrNode);
                     ptrNode = next_node;
+                    table->csize--;
                 }
                 free(ptr);
                 ptr = next;
