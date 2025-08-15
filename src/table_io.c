@@ -299,9 +299,13 @@ int fprintTable(Table* table, FILE* output) {
         }
     }
     fprintf(output, "}\n");
-    return 0;
+    return SUCCESS;
 }
 
 int printTable(Table* table) {
-    return fprintTable(table, stdout);
+    int code = fprintTable(table, stdout);
+    if (code == INVALID_ARGUMENT_BY_INDEX(1)) {
+        return ELEMENT_NOT_FOUND;
+    }
+    return code;
 }

@@ -11,7 +11,7 @@ void menu() {
     printf("2. Insert element\n");
     printf("3. Delete element\n");
     printf("4. Find element\n");
-    printf("5. See table\n");
+    printf("5. Print table\n");
     printf("6. Import table\n");
     printf("7. Export table\n");
     printf("8. Reorganizing table\n");
@@ -41,9 +41,8 @@ int main() {
     uint8_t command;
     Table* table = NULL;
     do {
-        int tmp, key, release, info;
         menu();
-        if(inputUInt8(&command, 0, 8) == -1) {
+        if(inputUInt8(&command, 0, 9) == -1) {
             return close(table, SUCCESS);
         }
         switch(command)  {
@@ -73,21 +72,41 @@ int main() {
                 break;
             }
             case 2: {
-                printf("key: \n");
-                checkInt(&key);
-                printf("Info: \n");
-                checkInt(&info);
-                tmp = insert(table, key, info);
-                if(tmp == 1) {
-                    printf("ERROR\nTable not found\n");
+                KeyType key;
+                InfoType info;
+                int code;
+                do {
+                    printf("Enter key: ");
+                    code = inputUInt32(&key, 0U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                do {
+                    printf("Enter info: ");
+                    code = inputUInt32(&info, 0U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                code = insert(table, key, info);
+                // code == TABLE_IS_EMPTY is unavailable
+                // code == RELEASE_IS_EXISTS is unavailable
+                // code == TABLE_KEY_SPACE_NOT_INITIALIZE is unavailable
+                if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+                    fprintf(stderr, "Error: Table is not initialized, create it, and try again.\n");
+                } else if (code == ERROR_OF_MEMORY) {
+                    fprintf(stderr, "Error: Not found memory to inserting.");
+                    return close(table, code);
                 }
-                else if(tmp == 2) {
-                    printf("ERROR\nError of memory\nNew element didn`t create\n");
-                }
-                printTable(table);
                 break;
             }
             case 3: {
+                int key, release, tmp;
                 menuDelete();
                 inputUInt8(&command, 1, 3);
                 printf("Key\n");
@@ -121,10 +140,10 @@ int main() {
                         printf("ERROR\nElement not found\n");
                     }
                 }
-                printTable(table);
                 break;
             }
             case 4: {
+                int key, release, tmp;
                 menuFind();
                 inputUInt8(&command, 1, 2);
                 printf("Key:\n");
@@ -151,11 +170,16 @@ int main() {
                         free(array);
                     }
                 }
-                printTable(table);
                 break;
             }
             case 5: {
-                printTable(table);   
+                int code = printTable(table); 
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+                // code == TABLE_KEY_SPACE_NOT_INITIALIZE is unavailable
+                if (code == ELEMENT_NOT_FOUND) {
+                    fprintf(stderr, "CriticalError: Can't find 'stdin' stream");
+                    return close(table, code);
+                }
                 break;
             }
             case 6: {
@@ -172,7 +196,6 @@ int main() {
                 } else if (code == ERROR_IN_FILE) {
                     perror("Error: on read file on importing table\n");
                 }
-                printTable(table);
                 break;
             }
             case 7: {
@@ -189,11 +212,11 @@ int main() {
                 break;
             }
             case 8: {
+                int tmp;
                 tmp = individualDelete(table);
                 if(tmp == TABLE_IS_EMPTY) {
                     printf("ERROR\nTable is empty\n");
                 }
-                printTable(table);
                 break;
             }
             case 9: {
@@ -201,6 +224,6 @@ int main() {
                 break;
             }
         }
-    }while(command != 0);
+    } while (command != 0);
     return 0;
 }

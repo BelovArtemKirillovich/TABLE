@@ -66,14 +66,6 @@ int findAllVersions(Table* table, InfoType** __out_array, KeyType key) {
     return SUCCESS;
 }
 
-Node* findNode(Node *head, RelType release) {
-    while (head != NULL) {
-        if(head->release == release) return head;
-        head = head->next;
-    }
-    return NULL;
-}
-
 int createNode(Node** out, RelType release, InfoType info, Node* next) {
     Node* newnode = calloc(1, sizeof(Node));
     if(newnode == NULL) return ERROR_OF_MEMORY;
@@ -124,6 +116,7 @@ int insertNode(KeySpace *ks, RelType release, InfoType info) {
 int __insert(Table* table, KeyType key, RelType* release, InfoType info) {
     if (table == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
     if (table->msize == 0) return TABLE_IS_EMPTY;
+    if (table->ks == NULL) return TABLE_KEY_SPACE_NOT_INITIALIZE;
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
     KeySpace* prev = NULL;
