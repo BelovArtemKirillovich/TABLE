@@ -3,8 +3,9 @@
 
 #define SUCCESS (0)
 #define ERROR_OF_MEMORY (1)
-#define INVALID_ARGUMENT (2)
-#define ELEMENT_NOT_FOUND (3)
-#define TABLE_IS_EMPTY (4)
+#define ELEMENT_NOT_FOUND (2)
+#define TABLE_IS_EMPTY (3)
+#define INVALID_ARGUMENT (4)
+#define INVALID_ARGUMENT_BY_INDEX(index) (INVALID_ARGUMENT + index)
 
 #endif // RETURN_CODE_H
