@@ -1,7 +1,7 @@
 #include "include/table_io.h"
 #include "include/return_code.h"
 
-int readIndexTypeInBytes(IndexType *number, FILE* file) {
+int getIndexTypeInBytes(IndexType *number, FILE* file) {
     if (number == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
     if (file == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
     IndexType n = 0;
@@ -11,7 +11,7 @@ int readIndexTypeInBytes(IndexType *number, FILE* file) {
         n = (code << (8 * byte_index)) + n;
         byte_index++;
     }
-    if (feof(file)) {
+    if (feof(file) && byte_index < sizeof(IndexType)) {
         return FILE_IS_END;
     }
     if (ferror(file)) {
@@ -21,12 +21,129 @@ int readIndexTypeInBytes(IndexType *number, FILE* file) {
     return SUCCESS;
 }
 
-int importTable(Table* table, const char* filename) {
+int getKeyTypeInBytes(KeyType *number, FILE* file) {
+    if (number == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (file == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
+    KeyType n = 0;
+    KeyType byte_index = 0;
+    while (!feof(file) && !ferror(file) && byte_index < sizeof(KeyType)) {
+        int code = fgetc(file);
+        n = (code << (8 * byte_index)) + n;
+        byte_index++;
+    }
+    if (feof(file) && byte_index < sizeof(KeyType)) {
+        return FILE_IS_END;
+    }
+    if (ferror(file)) {
+        return ERROR_IN_FILE;
+    }
+    *number = n;
+    return SUCCESS;
+}
+
+int getInfoTypeInBytes(InfoType *number, FILE* file) {
+    if (number == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (file == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
+    InfoType n = 0;
+    InfoType byte_index = 0;
+    while (!feof(file) && !ferror(file) && byte_index < sizeof(InfoType)) {
+        int code = fgetc(file);
+        n = (code << (8 * byte_index)) + n;
+        byte_index++;
+    }
+    if (feof(file) && byte_index < sizeof(InfoType)) {
+        return FILE_IS_END;
+    }
+    if (ferror(file)) {
+        return ERROR_IN_FILE;
+    }
+    *number = n;
+    return SUCCESS;
+}
+
+int getRelTypeInBytes(RelType *number, FILE* file) {
+    if (number == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (file == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
+    RelType n = 0;
+    RelType byte_index = 0;
+    while (!feof(file) && !ferror(file) && byte_index < sizeof(RelType)) {
+        int code = fgetc(file);
+        n = (code << (8 * byte_index)) + n;
+        byte_index++;
+    }
+    if (feof(file) && byte_index < sizeof(RelType)) {
+        return FILE_IS_END;
+    }
+    if (ferror(file)) {
+        return ERROR_IN_FILE;
+    }
+    *number = n;
+    return SUCCESS;
+}
+
+int importTable(Table** table, const char* filename) {
     if (table == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
     if (filename == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
     FILE* file = fopen(filename, "rb");
     if (file == NULL) return FILE_CAN_NOT_OPEN;
-    /* TODO: Add importing table */
+    IndexType msize;
+    int code = getIndexTypeInBytes(&msize, file);
+    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+    // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and at each others
+    if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+        fclose(file);
+        return code;
+    }
+
+    if (*table != NULL) {
+        freeTable(table);
+    }
+    code = createTable(msize, table);
+    // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable
+    if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+        return TABLE_IS_EMPTY;
+    }
+
+    /* import table content kay-space array */
+    Table *t = *table;
+    for(IndexType index = 0; index < t->msize; index++) {
+        IndexType ks_list_length;
+        code = getIndexTypeInBytes(&ks_list_length, file);
+        if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+            fclose(file);
+            return code;
+        }
+        for (IndexType subindex = 0; subindex < ks_list_length; subindex++) {
+            KeyType key;
+            code = getKeyTypeInBytes(&key, file);
+            if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+                fclose(file);
+                return code;
+            }
+            IndexType nodes_list_length;
+            code = getIndexTypeInBytes(&nodes_list_length, file);
+            if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+                fclose(file);
+                return code;
+            }
+            for (IndexType node_index = 0; node_index < nodes_list_length; node_index++) {
+                RelType release;
+                code = getRelTypeInBytes(&release, file);
+                if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+                    fclose(file);
+                    return code;
+                }
+                InfoType info;
+                code = getIndexTypeInBytes(&info, file);
+                if (code == FILE_IS_END || code == ERROR_IN_FILE) {
+                    fclose(file);
+                    return code;
+                }
+                insertByRelease(t, key, release, info);
+                // TODO: need insert(table, key, release, info);
+            }
+        }
+    }
     fclose(file);
     return SUCCESS;
 }
@@ -105,7 +222,7 @@ int exportKeySpace(KeySpace* ks, FILE* file) {
             return ERROR_IN_FILE;
         }
         Node* node = ks->node;
-        code = putKeyTypeInBytes(nodeListLength(node), file);
+        code = putIndexTypeInBytes(nodeListLength(node), file);
         if (code == ERROR_IN_FILE) {
             return ERROR_IN_FILE;
         }

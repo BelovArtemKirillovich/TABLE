@@ -6,7 +6,7 @@
 #include "table.h"
 
 int exportTable(Table* table, const char* filename);
-int importTable(Table* table, const char* filename);
+int importTable(Table** table, const char* filename);
 int fprintTable(Table* table, FILE* output);
 int printTable(Table* table);
 

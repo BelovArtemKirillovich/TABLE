@@ -160,7 +160,19 @@ int main() {
             }
             case 6: {
                 char* filename = "tests/table.bin";
-                int code = importTable(table, filename);     
+                int code = importTable(&table, filename);
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and at each others
+                if (code == FILE_IS_END) {
+                    fprintf(stderr, "Error: file for importing so small.\n");
+                } else if (code == FILE_CAN_NOT_OPEN) {
+                    fprintf(stderr, "Error: file '%s' not found.\n", filename);
+                } else if (code == TABLE_IS_EMPTY) {
+                    fprintf(stderr, "Error: exporting file contains invalid table size: zero.\n");
+                } else if (code == ERROR_IN_FILE) {
+                    perror("Error: on read file on importing table\n");
+                }
+                printTable(table);
                 break;
             }
             case 7: {
