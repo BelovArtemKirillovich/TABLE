@@ -147,7 +147,7 @@ int readline(char** out) {
     return code;
 }
 
-
+/* TODO: Remove unneeded methond */
 int inputInt(int *x, int min, int max) {
     int count = scanf("%d", x);
     while (count != 1 || *x < min || *x > max) {
