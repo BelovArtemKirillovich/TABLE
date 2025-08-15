@@ -5,7 +5,8 @@
 #define ERROR_OF_MEMORY (1)
 #define ELEMENT_NOT_FOUND (2)
 #define TABLE_IS_EMPTY (3)
-#define INVALID_ARGUMENT (4)
+#define FILE_CAN_NOT_OPEN (4)
+#define INVALID_ARGUMENT (5)
 #define INVALID_ARGUMENT_BY_INDEX(index) (INVALID_ARGUMENT + (index))
 
 #endif // RETURN_CODE_H

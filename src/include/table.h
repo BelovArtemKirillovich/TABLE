@@ -38,5 +38,7 @@ int deleteKeySpace(Table* table, KeyType key);
 int seeTable(Table* table);
 int individualDelete(Table* table);
 int freeTable(Table* table);
+int export(Table* table, const char* filename);
+int import(Table* table, const char* filename);
 
 #endif
