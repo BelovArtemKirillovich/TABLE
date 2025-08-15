@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "include/input.h"
 #include "include/table.h"
+#include "include/table_io.h"
 #include "include/return_code.h"
 
 void menu() {
@@ -71,7 +72,7 @@ int main() {
                 else if(tmp == 2) {
                     printf("ERROR\nError of memory\nNew element didn`t create\n");
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 3:
                 menuDelete();
@@ -107,7 +108,7 @@ int main() {
                         printf("ERROR\nElement not found\n");
                     }
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 4:
                 menuFind();
@@ -136,23 +137,23 @@ int main() {
                         free(array);
                     }
                 }
-                seeTable(table);
+                printTable(table);
                 break;
             case 5:
-                seeTable(table);   
+                printTable(table);   
                 break;
             case 6:
-                import(table, "tests/table.bin");      
+                importTable(table, "tests/table.bin");      
                 break;
             case 7:
-                export(table, "tests/table.bin");
+                exportTable(table, "tests/table.bin");
                 break;
             case 8:
                 tmp = individualDelete(table);
                 if(tmp == TABLE_IS_EMPTY) {
                     printf("ERROR\nTable is empty\n");
                 }
-                seeTable(table);
+                printTable(table);
                 break;
         }
     }while(command != 0);

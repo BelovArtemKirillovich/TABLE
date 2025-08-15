@@ -35,10 +35,7 @@ int insert(Table* table, KeyType key, InfoType info);
 int deleteByRelease(Table* table, KeyType key, RelType release);
 int deleteHeadRelease(Table* table, KeyType key);
 int deleteKeySpace(Table* table, KeyType key);
-int seeTable(Table* table);
 int individualDelete(Table* table);
 int freeTable(Table* table);
-int export(Table* table, const char* filename);
-int import(Table* table, const char* filename);
 
 #endif

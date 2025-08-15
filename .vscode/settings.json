@@ -5,6 +5,7 @@
         "inttypes.h": "c",
         "compare": "c",
         "return_code.h": "c",
-        "limits.h": "c"
+        "limits.h": "c",
+        "table_io.h": "c"
     }
 }
