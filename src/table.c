@@ -11,7 +11,10 @@ int createTable(IndexType msize, Table** __out) {
     Table* table = calloc(1, sizeof(Table));
     if(table == NULL) return ERROR_OF_MEMORY;
     table->ks = calloc(msize, sizeof(KeySpace));
-    if(table->ks == NULL) return ERROR_OF_MEMORY;
+    if(table->ks == NULL) {
+        free(table);
+        return ERROR_OF_MEMORY;
+    }
     table->msize = msize;
     table->csize = 0;
 
@@ -291,18 +294,20 @@ int clearTable(Table *table) {
                 free(ptr);
                 ptr = next;
             }
+            table->ks[index] = NULL;
         }
-        free(table->ks);
     }
-    table->ks = NULL;
     table->csize = 0;
-    table->msize = 0;
     return SUCCESS;
 }
 
 int freeTable(Table** table) {
     if (table == NULL) return INVALID_ARGUMENT;
     clearTable(*table);
+    if ((*table)->ks != NULL) {
+        free((*table)->ks);
+        (*table)->ks = NULL;
+    }
     free(*table);
     *table = NULL;
     return SUCCESS;

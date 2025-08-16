@@ -195,6 +195,8 @@ int main() {
                     fprintf(stderr, "Error: exporting file contains invalid table size: zero.\n");
                 } else if (code == ERROR_IN_FILE) {
                     perror("Error: on read file on importing table\n");
+                } else if (code == INVALID_FILE_CONTENT) {
+                    fprintf(stderr, "Error: File %s content is invalid", filename);
                 }
                 break;
             }

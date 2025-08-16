@@ -100,10 +100,11 @@ int importTable(Table** table, const char* filename) {
     }
     code = createTable(msize, table);
     // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable
-    if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
-        return TABLE_IS_EMPTY;
+    if (code == INVALID_ARGUMENT_BY_INDEX(0) || code == ERROR_OF_MEMORY) {
+        fclose(file);
+        return (code == INVALID_ARGUMENT_BY_INDEX(0)) ? INVALID_FILE_CONTENT : code;
     }
-
+    // msize > 0
     /* import table content kay-space array */
     Table *t = *table;
     for(IndexType index = 0; index < t->msize; index++) {
@@ -139,8 +140,16 @@ int importTable(Table** table, const char* filename) {
                     fclose(file);
                     return code;
                 }
-                insertByRelease(t, key, release, info);
-                // TODO: need insert(table, key, release, info);
+                code = insertByRelease(t, key, release, info);
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+                // code == TABLE_IS_EMPTY is unavailable
+                // code == TABLE_KEY_SPACE_NOT_INITIALIZE
+                if (code == ERROR_OF_MEMORY) {
+                    fclose(file);
+                    return ERROR_OF_MEMORY;
+                } else if (code == RELEASE_IS_EXISTS) {
+                    fprintf(stderr, "Release %u has dublicates", release);
+                } 
             }
         }
     }

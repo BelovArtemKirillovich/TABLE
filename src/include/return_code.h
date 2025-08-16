@@ -9,8 +9,9 @@
 #define RELEASE_IS_EXISTS (5)
 #define FILE_CAN_NOT_OPEN (6)
 #define FILE_IS_END (EOF)
-#define ERROR_IN_FILE (7)
-#define INVALID_ARGUMENT (8)
+#define INVALID_FILE_CONTENT (7)
+#define ERROR_IN_FILE (8)
+#define INVALID_ARGUMENT (9)
 #define INVALID_ARGUMENT_BY_INDEX(index) (INVALID_ARGUMENT + (index))
 
 #endif // RETURN_CODE_H
