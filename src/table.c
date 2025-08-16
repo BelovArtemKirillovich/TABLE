@@ -320,6 +320,7 @@ int clearTable(Table *table) {
 int freeTable(Table** table) {
     if (table == NULL) return INVALID_ARGUMENT;
     clearTable(*table);
+    if ((*table) == NULL) return INVALID_ARGUMENT;
     if ((*table)->ks != NULL) {
         free((*table)->ks);
         (*table)->ks = NULL;

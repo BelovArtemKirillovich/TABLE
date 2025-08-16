@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "include/input.h"
 #include "include/table.h"
 #include "include/table_io.h"
@@ -44,8 +45,8 @@ int main() {
     Table* table = NULL;
     do {
         menu();
-        if(inputUInt8(&command, 0, 9) == -1) {
-            return close(table, SUCCESS);
+        if(inputUInt8(&command, 0, 9) == ELEMENT_NOT_FOUND) {
+            return close(table, ELEMENT_NOT_FOUND);
         }
         switch(command)  {
             case 0: {
@@ -110,9 +111,11 @@ int main() {
             case 3: {
                 int key, release, tmp;
                 menuDelete();
-                inputInt(&command, 0, 3);
+                if(inputUInt8(&command, 0, 3) == ELEMENT_NOT_FOUND) {
+                    return close(table, ELEMENT_NOT_FOUND);
+                }
                 if(command == 1) {
-                    printf("Key\n");
+                    printf("Key:\n");
                     checkInt(&key);
                     printf("Release:\n");
                     checkInt(&release);
@@ -146,16 +149,14 @@ int main() {
                         printf("ERROR\nElement not found\n");
                     }
                 }
-                else if(command == 0) { // ERROR
-                    printTable(table);
-                    continue;
-                }
                 break;
             }
             case 4: {
                 int key, release, tmp;
                 menuFind();
-                inputInt(&command, 0, 2);
+                if(inputUInt8(&command, 0, 3) == ELEMENT_NOT_FOUND) {
+                    return close(table, ELEMENT_NOT_FOUND);
+                }
                 if(command == 1) {
                     printf("Key:\n");
                     checkInt(&key);
@@ -176,19 +177,16 @@ int main() {
                     InfoType* array = NULL;
                     tmp = findAllVersions(table, &array, key, &n);
                     if(tmp == ELEMENT_NOT_FOUND) {
-                        printf("ERROR\nElement not found\n");
+                        printf("ERROR\nElements not found\n");
                     }
                     else if (tmp == SUCCESS) {
                         printf("Key->%d\n", key);
-                        for(IndexType i = n; i != 0; i--) {
+                        for(IndexType i = 0; i < n; i++) {
+                            /* FIXME: fix by getting release from find */
                             printf("\tRelease->%d   Info->%d\n", (i + 1), array[i]);
                         }
                         free(array);
                     }
-                }
-                else if(command == 0) { //ERROR
-                    printTable(table);
-                    continue;
                 }
                 break;
             }
@@ -246,6 +244,6 @@ int main() {
                 break;
             }
         }
-    } while (command != 0);
+    } while (true);
     return 0;
 }
