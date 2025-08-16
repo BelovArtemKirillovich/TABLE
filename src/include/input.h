@@ -10,6 +10,9 @@ int inputInt16(int16_t *out, int16_t min, int16_t max);
 int inputUInt16(uint16_t *out, uint16_t min, uint16_t max);
 int inputInt8(int8_t *out, int8_t min, int8_t max);
 int inputUInt8(uint8_t *out, uint8_t min, uint8_t max);
+int freadline(FILE* stream, char** out);
+int readline(char** out);
+
 int inputInt(int *x, int min, int max);
 int checkCom(int *k);
 int checkInt(int *k);

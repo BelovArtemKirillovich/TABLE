@@ -11,7 +11,10 @@ int createTable(IndexType msize, Table** __out) {
     Table* table = calloc(1, sizeof(Table));
     if(table == NULL) return ERROR_OF_MEMORY;
     table->ks = calloc(msize, sizeof(KeySpace));
-    if(table->ks == NULL) return ERROR_OF_MEMORY;
+    if(table->ks == NULL) {
+        free(table);
+        return ERROR_OF_MEMORY;
+    }
     table->msize = msize;
     table->csize = 0;
 
@@ -73,35 +76,88 @@ int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType
     return SUCCESS;
 }
 
+int createNode(Node** out, RelType release, InfoType info, Node* next) {
+    Node* newnode = calloc(1, sizeof(Node));
+    if(newnode == NULL) return ERROR_OF_MEMORY;
+    newnode->release = release;
+    newnode->info = info;
+    newnode->next = next;
+    *out = newnode;
+    return SUCCESS;
+}
 
-int insert(Table* table, KeyType key, InfoType info) {
-    if(table->msize == 0 || table == NULL) return TABLE_IS_EMPTY;
+int insertNode(KeySpace *ks, RelType release, InfoType info) {
+    if (ks == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (ks->node == NULL) {
+        return createNode(
+            &ks->node, 
+            release,
+            info, 
+            NULL
+        );
+    }
+    Node *current = ks->node;
+    Node *parent = NULL;
+    while (current != NULL) {
+        if (current->release == release) return RELEASE_IS_EXISTS;
+        if (current->release < release) break;
+        // current->release > release
+        parent = current;
+        current = current->next;
+    }
+    if (current == NULL) {
+        // parent != NULL
+        return createNode(
+            &parent->next, 
+            release,
+            info, 
+            NULL
+        );
+    }
+    // current != NULL && current->release < release
+    return createNode(
+        (parent == NULL) ? &ks->node : &parent->next, 
+        release,
+        info, 
+        current
+    );
+}
+
+int __insert(Table* table, KeyType key, RelType* release, InfoType info) {
+    if (table == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
+    if (table->msize == 0) return TABLE_IS_EMPTY;
+    if (table->ks == NULL) return TABLE_KEY_SPACE_NOT_INITIALIZE;
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
     KeySpace* prev = NULL;
     while(ptr != NULL) {
         if(ptr->key == key) {
-            Node* newnode = calloc(1, sizeof(Node));
-            if(newnode == NULL) return ERROR_OF_MEMORY;
-            newnode->release = ptr->node->release + 1;
-            newnode->info = info;
-            newnode->next = ptr->node;
-            ptr->node = newnode;
-            return 0;
+            if (release == NULL) {
+                return createNode(
+                    &ptr->node, 
+                    ((ptr->node == NULL) ? 0 : ptr->node->release) + 1,
+                    info, 
+                    ptr->node
+                );
+            }
+            return insertNode(ptr, *release, info);;
         }
         prev = ptr;
         ptr = ptr->next;
     }
     KeySpace* new = calloc(1, sizeof(KeySpace));
     if(new == NULL) return ERROR_OF_MEMORY;
-    new->node = calloc(1, sizeof(Node));
-    if(new->node == NULL) {
+    new->key = key;
+    int code = createNode(
+        &new->node, 
+        (release == NULL) ? 1 : *release,
+        info, 
+        NULL
+    );
+    if (code == ERROR_OF_MEMORY) {
         free(new);
         return ERROR_OF_MEMORY;
     }
-    new->key = key;
-    new->node->info = info;
-    new->node->release = 1;
     if(prev == NULL) {
         new->next = NULL;
     }
@@ -111,6 +167,14 @@ int insert(Table* table, KeyType key, InfoType info) {
     table->ks[index] = new;
     ++table->csize;
     return SUCCESS;
+}
+
+int insert(Table* table, KeyType key, InfoType info) {
+    return __insert(table, key, NULL, info);
+}
+
+int insertByRelease(Table* table, KeyType key, RelType release, InfoType info) {
+    return __insert(table, key, &release, info);
 }
 
 
@@ -246,18 +310,20 @@ int clearTable(Table *table) {
                 free(ptr);
                 ptr = next;
             }
+            table->ks[index] = NULL;
         }
-        free(table->ks);
     }
-    table->ks = NULL;
     table->csize = 0;
-    table->msize = 0;
     return SUCCESS;
 }
 
 int freeTable(Table** table) {
     if (table == NULL) return INVALID_ARGUMENT;
     clearTable(*table);
+    if ((*table)->ks != NULL) {
+        free((*table)->ks);
+        (*table)->ks = NULL;
+    }
     free(*table);
     *table = NULL;
     return SUCCESS;

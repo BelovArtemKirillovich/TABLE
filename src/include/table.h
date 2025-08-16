@@ -32,6 +32,7 @@ KeySpace* find(Table* table, KeyType key);
 Node* findRelease(Table* table, KeyType key, RelType release);
 int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType *n);
 int insert(Table* table, KeyType key, InfoType info);
+int insertByRelease(Table* table, KeyType key, RelType release, InfoType info);
 int deleteByRelease(Table* table, KeyType key, RelType release);
 int deleteHeadRelease(Table* table, KeyType key);
 int deleteKeySpace(Table* table, KeyType key);

@@ -11,7 +11,7 @@ void menu() {
     printf("2. Insert element\n");
     printf("3. Delete element\n");
     printf("4. Find element\n");
-    printf("5. See table\n");
+    printf("5. Print table\n");
     printf("6. Import table\n");
     printf("7. Export table\n");
     printf("8. Reorganizing table\n");
@@ -40,23 +40,23 @@ int close(Table *table, int code) {
 }
 
 int main() {
-    int command;
+    uint8_t command;
     Table* table = NULL;
     do {
-        int tmp, key, release, info;
         menu();
-        if(checkCom(&command) == -1) {
+        if(inputUInt8(&command, 0, 9) == -1) {
             return close(table, SUCCESS);
         }
         switch(command)  {
-            case 0:
+            case 0: {
                 return close(table, SUCCESS);
-            case 1:
-                freeTable(& table);
+            }
+            case 1: {
+                freeTable(&table);
                 IndexType msize;
                 int code;
                 do {
-                    printf("msize:\n");
+                    printf("Enter max-size of table: \n");
                     code = inputUInt32(&msize, 1U, UINT32_MAX);
                     // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
                     if (code == ELEMENT_NOT_FOUND) {
@@ -68,25 +68,47 @@ int main() {
                 // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
                 // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable point
                 if (code == ERROR_OF_MEMORY) {
-                    fprintf(stderr, "Error: Not fount memory to initialize table.");
+                    fprintf(stderr, "Error: Not found memory to initialize table.");
                     return close(table, code);
                 }  
                 break;
-            case 2:
-                printf("key: \n");
-                checkInt(&key);
-                printf("Info: \n");
-                checkInt(&info);
-                tmp = insert(table, key, info);
-                if(tmp == 1) {
-                    printf("ERROR\nTable not found\n");
+            }
+            case 2: {
+                KeyType key;
+                InfoType info;
+                int code;
+                do {
+                    printf("Enter key: ");
+                    code = inputUInt32(&key, 0U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                do {
+                    printf("Enter info: ");
+                    code = inputUInt32(&info, 0U, UINT32_MAX);
+                    // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable point
+                    if (code == ELEMENT_NOT_FOUND) {
+                        fprintf(stderr, "Error: Can't read next number.");
+                        return close(table, code);
+                    }
+                } while (code != SUCCESS);
+                code = insert(table, key, info);
+                // code == TABLE_IS_EMPTY is unavailable
+                // code == RELEASE_IS_EXISTS is unavailable
+                // code == TABLE_KEY_SPACE_NOT_INITIALIZE is unavailable
+                if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+                    fprintf(stderr, "Error: Table is not initialized, create it, and try again.\n");
+                } else if (code == ERROR_OF_MEMORY) {
+                    fprintf(stderr, "Error: Not found memory to inserting.");
+                    return close(table, code);
                 }
-                else if(tmp == 2) {
-                    printf("ERROR\nError of memory\nNew element didn`t create\n");
-                }
-                printTable(table);
                 break;
-            case 3:
+            }
+            case 3: {
+                int key, release, tmp;
                 menuDelete();
                 inputInt(&command, 0, 3);
                 if(command == 1) {
@@ -128,9 +150,10 @@ int main() {
                     printTable(table);
                     continue;
                 }
-                printTable(table);
                 break;
-            case 4:
+            }
+            case 4: {
+                int key, release, tmp;
                 menuFind();
                 inputInt(&command, 0, 2);
                 if(command == 1) {
@@ -167,28 +190,62 @@ int main() {
                     printTable(table);
                     continue;
                 }
-                printTable(table);
                 break;
-            case 5:
-                printTable(table);   
+            }
+            case 5: {
+                int code = printTable(table); 
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+                // code == TABLE_KEY_SPACE_NOT_INITIALIZE is unavailable
+                if (code == ELEMENT_NOT_FOUND) {
+                    fprintf(stderr, "CriticalError: Can't find 'stdin' stream");
+                    return close(table, code);
+                }
                 break;
-            case 6:
-                importTable(table, "tests/table.bin");      
+            }
+            case 6: {
+                char* filename = "tests/table.bin";
+                int code = importTable(&table, filename);
+                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and at each others
+                if (code == FILE_IS_END) {
+                    fprintf(stderr, "Error: file for importing so small.\n");
+                } else if (code == FILE_CAN_NOT_OPEN) {
+                    fprintf(stderr, "Error: file '%s' not found.\n", filename);
+                } else if (code == TABLE_IS_EMPTY) {
+                    fprintf(stderr, "Error: exporting file contains invalid table size: zero.\n");
+                } else if (code == ERROR_IN_FILE) {
+                    perror("Error: on read file on importing table\n");
+                } else if (code == INVALID_FILE_CONTENT) {
+                    fprintf(stderr, "Error: File %s content is invalid", filename);
+                }
                 break;
-            case 7:
-                exportTable(table, "tests/table.bin");
+            }
+            case 7: {
+                char* filename = "tests/table.bin";
+                int code = exportTable(table, filename);
+                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and in other calls
+                if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
+                    fprintf(stderr, "Error: Table is not initialized, create it, and try again.\n");
+                } else if (code == FILE_CAN_NOT_OPEN) {
+                    fprintf(stderr, "Error: Can't open file '%s' to export table\n", filename);
+                } else if (code == ERROR_IN_FILE) {
+                    perror("Error: on save to file on exporting table\n");
+                }
                 break;
-            case 8:
+            }
+            case 8: {
+                int tmp;
                 tmp = individualDelete(table);
                 if(tmp == TABLE_IS_EMPTY) {
                     printf("ERROR\nTable is empty\n");
                 }
-                printTable(table);
                 break;
-            case 9:
+            }
+            case 9: {
                 clearTable(table);
                 break;
+            }
         }
-    }while(command != 0);
+    } while (command != 0);
     return 0;
 }
