@@ -53,7 +53,7 @@ KeySpace* find(Table* table, KeyType key) {
 
 
 
-int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType *n) {
+int findAllVersions(Table* table, Node** __out_array, KeyType key, IndexType *n) {
     if (table == NULL) return INVALID_ARGUMENT;
     KeySpace* ptr = find(table, key);
     if (ptr == NULL || ptr->node == NULL) return ELEMENT_NOT_FOUND;
@@ -64,11 +64,13 @@ int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType
         size++;
         tmp = tmp->next;
     }
-    InfoType* array = calloc(size, sizeof(InfoType));
+    Node* array = calloc(size, sizeof(InfoType));
     if (array == NULL) return ERROR_OF_MEMORY;
     tmp = head;
     for (IndexType i = 0; i < size; i++) {
-        array[i] = tmp->info;
+        array[i].info = tmp->info;
+        array[i].release = tmp->release;
+        array[i].next = NULL;
         tmp = tmp->next;
     }
     *__out_array = array;
@@ -101,12 +103,10 @@ int insertNode(KeySpace *ks, RelType release, InfoType info) {
     while (current != NULL) {
         if (current->release == release) return RELEASE_IS_EXISTS;
         if (current->release < release) break;
-        // current->release > release
         parent = current;
         current = current->next;
     }
     if (current == NULL) {
-        // parent != NULL
         return createNode(
             &parent->next, 
             release,
@@ -114,7 +114,6 @@ int insertNode(KeySpace *ks, RelType release, InfoType info) {
             NULL
         );
     }
-    // current != NULL && current->release < release
     return createNode(
         (parent == NULL) ? &ks->node : &parent->next, 
         release,

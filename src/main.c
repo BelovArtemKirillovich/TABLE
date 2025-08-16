@@ -174,7 +174,7 @@ int main() {
                     printf("Key:\n");
                     checkInt(&key);
                     IndexType n = 0;
-                    InfoType* array = NULL;
+                    Node* array = NULL;
                     tmp = findAllVersions(table, &array, key, &n);
                     if(tmp == ELEMENT_NOT_FOUND) {
                         printf("ERROR\nElements not found\n");
@@ -183,7 +183,7 @@ int main() {
                         printf("Key->%d\n", key);
                         for(IndexType i = 0; i < n; i++) {
                             /* FIXME: fix by getting release from find */
-                            printf("\tRelease->%d   Info->%d\n", (i + 1), array[i]);
+                            printf("\tRelease->%d   Info->%d\n", array[i].release, array[i].info);
                         }
                         free(array);
                     }
@@ -192,8 +192,6 @@ int main() {
             }
             case 5: {
                 int code = printTable(table); 
-                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
-                // code == TABLE_KEY_SPACE_NOT_INITIALIZE is unavailable
                 if (code == ELEMENT_NOT_FOUND) {
                     fprintf(stderr, "CriticalError: Can't find 'stdin' stream");
                     return close(table, code);
@@ -203,8 +201,6 @@ int main() {
             case 6: {
                 char* filename = "tests/table.bin";
                 int code = importTable(&table, filename);
-                // code == INVALID_ARGUMENT_BY_INDEX(0) is unavailable
-                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and at each others
                 if (code == FILE_IS_END) {
                     fprintf(stderr, "Error: file for importing so small.\n");
                 } else if (code == FILE_CAN_NOT_OPEN) {
@@ -221,7 +217,6 @@ int main() {
             case 7: {
                 char* filename = "tests/table.bin";
                 int code = exportTable(table, filename);
-                // code == INVALID_ARGUMENT_BY_INDEX(1) is unavailable, and in other calls
                 if (code == INVALID_ARGUMENT_BY_INDEX(0)) {
                     fprintf(stderr, "Error: Table is not initialized, create it, and try again.\n");
                 } else if (code == FILE_CAN_NOT_OPEN) {
