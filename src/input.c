@@ -175,7 +175,7 @@ int inputUInt(uint32_t *x, uint32_t min, uint32_t max) {
 }
 
 int checkCom(int *x) {
-    return inputInt(x, 0, 8);
+    return inputInt(x, 0, 9);
 }
 
 int checkInt(int *x) {

@@ -20,6 +20,7 @@ void menu() {
 
 void menuDelete() {
     printf("********DELETE*********\n");
+    printf("0. Back\n");
     printf("1. Delete element by key and release\n");
     printf("2. Delete element by last release\n");
     printf("3. Delete element by key (all release)\n");
@@ -27,6 +28,7 @@ void menuDelete() {
 
 void menuFind() {
     printf("**********FIND***********\n");
+    printf("0. Back\n");
     printf("1. Find by key and release\n");
     printf("2. Find all release by key\n");
 }
@@ -108,10 +110,10 @@ int main() {
             case 3: {
                 int key, release, tmp;
                 menuDelete();
-                inputUInt8(&command, 1, 3);
-                printf("Key\n");
-                checkInt(&key);
+                inputInt(&command, 0, 3);
                 if(command == 1) {
+                    printf("Key\n");
+                    checkInt(&key);
                     printf("Release:\n");
                     checkInt(&release);
                     tmp = deleteByRelease(table, key, release);
@@ -123,6 +125,8 @@ int main() {
                     }
                 }
                 else if(command == 2) {
+                    printf("Key\n");
+                    checkInt(&key);
                     tmp = deleteHeadRelease(table, key);
                     if(tmp == TABLE_IS_EMPTY) {
                         printf("ERROR\nTable is empty\n");
@@ -132,6 +136,8 @@ int main() {
                     }
                 }
                 else if(command == 3) {
+                    printf("Key\n");
+                    checkInt(&key);
                     tmp = deleteKeySpace(table, key);
                     if(tmp == TABLE_IS_EMPTY) {
                         printf("ERROR\nTable is empty\n");
@@ -140,15 +146,19 @@ int main() {
                         printf("ERROR\nElement not found\n");
                     }
                 }
+                else if(command == 0) { // ERROR
+                    printTable(table);
+                    continue;
+                }
                 break;
             }
             case 4: {
                 int key, release, tmp;
                 menuFind();
-                inputUInt8(&command, 1, 2);
-                printf("Key:\n");
-                checkInt(&key);
+                inputInt(&command, 0, 2);
                 if(command == 1) {
+                    printf("Key:\n");
+                    checkInt(&key);
                     printf("Release:\n");
                     checkInt(&release);
                     Node* node = findRelease(table, key, release);
@@ -160,15 +170,25 @@ int main() {
                     }
                 }
                 else if(command == 2) {
+                    printf("Key:\n");
+                    checkInt(&key);
+                    IndexType n = 0;
                     InfoType* array = NULL;
-                    tmp = findAllVersions(table, &array, key);
+                    tmp = findAllVersions(table, &array, key, &n);
                     if(tmp == ELEMENT_NOT_FOUND) {
                         printf("ERROR\nElement not found\n");
                     }
                     else if (tmp == SUCCESS) {
-                        //печать элементов
+                        printf("Key->%d\n", key);
+                        for(IndexType i = n; i != 0; i--) {
+                            printf("\tRelease->%d   Info->%d\n", (i + 1), array[i]);
+                        }
                         free(array);
                     }
+                }
+                else if(command == 0) { //ERROR
+                    printTable(table);
+                    continue;
                 }
                 break;
             }

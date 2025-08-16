@@ -42,7 +42,7 @@ Node* findRelease(Table* table, KeyType key, RelType release) {
 KeySpace* find(Table* table, KeyType key) {
     int index = hash(key, table->msize);
     KeySpace* ptr = table->ks[index];
-    while(ptr->next != NULL) {
+    while(ptr != NULL) {
         if(ptr->key == key) {
             return ptr;
         }
@@ -51,21 +51,28 @@ KeySpace* find(Table* table, KeyType key) {
     return NULL;
 }
 
-int findAllVersions(Table* table, InfoType** __out_array, KeyType key) {
-    if (table == NULL) return INVALID_ARGUMENT;
-    if (__out_array == NULL) return INVALID_ARGUMENT;
-    KeySpace* ptr = find(table, key);
-    if(ptr == NULL) return ELEMENT_NOT_FOUND;
-    Node* head = ptr->node;
-    if (head == NULL) return ELEMENT_NOT_FOUND;
-    InfoType* array = calloc(head->release + 1U, sizeof(InfoType));
-    if (array == NULL) return ERROR_OF_MEMORY;
 
-    while (head != NULL) {
-        array[head->release] = head->info;
-        head = head->next;
+
+int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType *n) {
+    if (table == NULL) return INVALID_ARGUMENT;
+    KeySpace* ptr = find(table, key);
+    if (ptr == NULL || ptr->node == NULL) return ELEMENT_NOT_FOUND;
+    Node* head = ptr->node;
+    IndexType size = 0;
+    Node* tmp = head;
+    while (tmp != NULL) {
+        size++;
+        tmp = tmp->next;
+    }
+    InfoType* array = calloc(size, sizeof(InfoType));
+    if (array == NULL) return ERROR_OF_MEMORY;
+    tmp = head;
+    for (IndexType i = 0; i < size; i++) {
+        array[i] = tmp->info;
+        tmp = tmp->next;
     }
     *__out_array = array;
+    *n = size;
     return SUCCESS;
 }
 
@@ -152,13 +159,13 @@ int __insert(Table* table, KeyType key, RelType* release, InfoType info) {
         return ERROR_OF_MEMORY;
     }
     if(prev == NULL) {
-        ++table->csize;
         new->next = NULL;
     }
     else {
         new->next = table->ks[index];
     }
     table->ks[index] = new;
+    ++table->csize;
     return SUCCESS;
 }
 
@@ -204,6 +211,7 @@ int deleteByRelease(Table* table, KeyType key, RelType release) {
         }
         free(ptr);
     }
+    table->csize--;
     return SUCCESS;
 }
 
@@ -220,16 +228,19 @@ int deleteHeadRelease(Table* table, KeyType key) {
     }
     if(ptr == NULL) return ELEMENT_NOT_FOUND;
     Node* tmp =  ptr->node;
-    if(tmp->next != NULL) {
-        Node* next = tmp->next;
+    if (tmp->next != NULL) {
+        ptr->node = tmp->next;
         free(tmp);
-        ptr->node = next;
-    }
-    else { //prev != NULL не придумал как обработать
-        KeySpace* next = ptr->next;
-        free(ptr->node);
+    } 
+    else {
+        free(tmp);
+        if (prev == NULL) {
+            table->ks[index] = ptr->next;
+        } else {
+            prev->next = ptr->next;
+        }
         free(ptr);
-        prev->next = next;
+        table->csize--;
     }
     return SUCCESS;
 }
@@ -256,6 +267,7 @@ int deleteKeySpace(Table* table, KeyType key) {
         prev->next = ptr->next;
     }
     free(ptr);
+    table->csize--;
     return SUCCESS;
 }
 
@@ -264,7 +276,10 @@ int individualDelete(Table* table) {
     for (IndexType index = 0; index < table->msize; index++) {
         KeySpace *ptr = table->ks[index];
         while (ptr != NULL) {
-            if(ptr->node == NULL || ptr->node->next == NULL) continue;
+            if(ptr->node == NULL || ptr->node->next == NULL) {
+                ptr = ptr->next;
+                continue;
+            }
             Node *ptrNode = ptr->node->next;
             while (ptrNode != NULL) {
                 Node *next_node = ptrNode->next;
@@ -290,6 +305,7 @@ int clearTable(Table *table) {
                     Node *next_node = ptrNode->next;
                     free(ptrNode);
                     ptrNode = next_node;
+                    table->csize--;
                 }
                 free(ptr);
                 ptr = next;
