@@ -30,7 +30,7 @@ typedef struct Table {
 int createTable(IndexType msize, Table** __out);
 KeySpace* find(Table* table, KeyType key);
 Node* findRelease(Table* table, KeyType key, RelType release);
-int findAllVersions(Table* table, InfoType** __out_array, KeyType key);
+int findAllVersions(Table* table, InfoType** __out_array, KeyType key, IndexType *n);
 int insert(Table* table, KeyType key, InfoType info);
 int deleteByRelease(Table* table, KeyType key, RelType release);
 int deleteHeadRelease(Table* table, KeyType key);

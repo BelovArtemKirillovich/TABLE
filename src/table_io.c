@@ -57,16 +57,16 @@ int fprintTable(Table* table, FILE* output) {
     if (table == NULL) return INVALID_ARGUMENT_BY_INDEX(0);
     if (output == NULL) return INVALID_ARGUMENT_BY_INDEX(1);
     if (table->ks == NULL) return TABLE_KEY_SPACE_NOT_INITIALIZE;
-    fprintf(output, "Table(max-size=%lu, capacity=%lu) {\n", table->msize, table->csize);
+    fprintf(output, "Table(max-size=%u, capacity=%u) {\n", table->msize, table->csize);
     for(IndexType index = 0; index != table->msize; index++) {
         KeySpace* ptr = table->ks[index];
         if (ptr == NULL) continue;
-        fprintf(output, "\tKeyspace %lu:\n", index);
+        fprintf(output, "\tKeyspace %u:\n", index);
         while(ptr != NULL) {
             fprintf(output, "\t\tKey->%d\n", ptr->key);
             Node* node = ptr->node;
             while (node != NULL) {
-                fprintf(output, "\t\t\tRelease->%lu   Info->%u\n", node->release, node->info);
+                fprintf(output, "\t\t\tRelease->%u   Info->%u\n", node->release, node->info);
                 node = node->next;
             }
             ptr = ptr->next;
